@@ -2,9 +2,12 @@
 
 #include <math.h>
 #include <SDL2/SDL.h>
+#ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl3.h>
+#endif
 #ifdef __EMSCRIPTEN__
+#include <SDL_opengles2.h>
 #include <emscripten.h>
 #endif
 
@@ -68,8 +71,9 @@ void main() {\
   GLint status; glGetShaderiv(vert, GL_COMPILE_STATUS, &status); (status == GL_TRUE) || glbail(vert, status);
   glAttachShader(prg, vert);
 
-  const char *fsrc =
+  char *fsrc =
 "\
+precision highp float;\
 varying vec2 coord;\
 uniform float time;\
 void main() {\
@@ -77,6 +81,9 @@ void main() {\
 }\
 ";
   GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+#ifdef __APPLE__
+  fsrc = fsrc+22;
+#endif
   glShaderSource(frag, 1, &fsrc, NULL);
   glCompileShader(frag);
   glGetShaderiv(frag, GL_COMPILE_STATUS, &status); (status == GL_TRUE) || glbail(frag, status);
