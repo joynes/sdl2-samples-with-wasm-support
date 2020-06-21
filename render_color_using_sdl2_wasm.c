@@ -4,11 +4,10 @@
 #include <emscripten.h>
 #endif
 
-struct Context { SDL_Renderer *renderer; double i; int quit; };
+struct Context { SDL_Renderer *renderer; double i; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s", SDL_GetError()); exit(i); return 1; }
 void quit() { SDL_Quit(); }
-
 int anim(float i) { return (sin(i)+1.)*127.; }
 
 void step(void * _ctx) {
@@ -25,10 +24,10 @@ int main() {
   SDL_Init(SDL_INIT_VIDEO) && bail(1);
   atexit(quit);
 
-  SDL_Window* window = NULL;
   struct Context ctx = {0};
-  (window = SDL_CreateWindow( "Render color", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN )) || bail(2);
-  (ctx.renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC )) || bail(3);
+  SDL_Window* window = SDL_CreateWindow( "Render color", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN );
+  window || bail(2);
+  (ctx.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC )) || bail(3);
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(step, &ctx, -1, 1);
 #else
