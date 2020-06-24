@@ -1,2 +1,2 @@
 file=$1
-clang -Wall -Wextra -Wpedantic -fsanitize=address -g3 -l SDL2-2.0.0 $file.c -framework OpenGl -o a.out && ./a.out 
+clang -Wall -Wextra -Wpedantic -fsanitize=address -F /Library/Frameworks -g3 $file.c -framework OpenGl -framework SDL2_mixer -framework SDL2 -o a.out && ./a.out
