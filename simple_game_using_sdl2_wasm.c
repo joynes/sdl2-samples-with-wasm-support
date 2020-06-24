@@ -1,4 +1,6 @@
 #define GL_SILENCE_DEPRECATION
+#define _W 640
+#define _H 480
 
 #include <math.h>
 #include <SDL2/SDL.h>
@@ -11,8 +13,8 @@
 #include <emscripten.h>
 #endif
 
-struct Obj { float x, y; };
-struct Context { SDL_Window *window; double i; GLuint time; struct Obj obj; };
+struct Obj { float pos[2]; };
+struct Context { SDL_Window *window; double i; GLuint prg; struct Obj obj; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
 int glbail(int i) { char str[10000]; glGetShaderInfoLog(i, 10000, NULL, str); SDL_Log("GL: %s, code %x\n", str, glGetError()); exit(i); return 1; }
@@ -27,11 +29,13 @@ void step(void * _ctx) {
     event.type == SDL_QUIT && bail(0);
     if (event.type == SDL_MOUSEMOTION) {
       SDL_MouseMotionEvent e = event.motion;
-      printf("%d\n", e.xrel);
+      ctx->obj.pos[0] = (e.x*2./_W) - 1.;
+      ctx->obj.pos[1] = -1.*((e.y*2./_H) - 1.);
     }
   }
 
-  glUniform1f(ctx->time, ctx->i/60.);
+  glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
+  glUniform2fv(glGetUniformLocation(ctx->prg, "pos"), 1, ctx->obj.pos);
   glClearColor(0., 0., 0, 1.);
   glClear(GL_COLOR_BUFFER_BIT);
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -41,12 +45,12 @@ void step(void * _ctx) {
 
 int main() {
   SDL_Init(SDL_INIT_VIDEO) && bail(1);
-  SDL_SetRelativeMouseMode(SDL_ENABLE);
+  //SDL_SetRelativeMouseMode(SDL_ENABLE);
   atexit(quit);
 
   struct Context ctx = {0};
 
-  (ctx.window = SDL_CreateWindow("Render color", 0, 0, 640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) || bail(2);
+  (ctx.window = SDL_CreateWindow("Render color", 0, 0, _W, _H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) || bail(2);
   SDL_GL_CreateContext(ctx.window);
   SDL_GL_SetSwapInterval(1);
 
@@ -84,7 +88,7 @@ void main() {\
 precision highp float;\
 varying vec2 coord;\
 uniform float time;\
-uniform float pos;\
+uniform vec2 pos;\
 void main() {\
   float s = .1;\
   gl_FragColor = vec4(vec3(step(abs(coord.x-pos.x), s)*step(abs(coord.y-pos.y), s)), 1.);\
@@ -107,7 +111,7 @@ void main() {\
   glVertexAttribPointer(vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(vertices_attr);
 
-  ctx.time = glGetUniformLocation(prg, "time");
+  ctx.prg = prg;
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(step, &ctx, -1, 1);
