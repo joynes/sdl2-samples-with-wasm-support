@@ -5,13 +5,17 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 #ifdef __APPLE__
+#include <SDL2_mixer/SDL_mixer.h>
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl3.h>
 #endif
 #ifdef __EMSCRIPTEN__
-#include <SDL_opengles2.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_opengles2.h>
 #include <emscripten.h>
 #endif
+
+Mix_Chunk * sample;
 
 struct Obj { float pos[2]; };
 struct Context { SDL_Window *window; double i; GLuint prg; struct Obj obj; };
@@ -32,6 +36,15 @@ void step(void * _ctx) {
       ctx->obj.pos[0] = (e.x*2./_W) - 1.;
       ctx->obj.pos[1] = -1.*((e.y*2./_H) - 1.);
     }
+    if (event.type == SDL_MOUSEBUTTONDOWN) {
+#ifdef __EMSCRIPTEN__
+      EM_ASM({
+        var SDL2 = Module['SDL2'];
+        (SDL2.audioContext.state == 'suspended') && SDL2.audioContext.resume();
+      });
+#endif
+      (Mix_PlayChannel(-1, sample, 0) == -1) && bail(5);
+    }
   }
 
   glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
@@ -44,7 +57,7 @@ void step(void * _ctx) {
 }
 
 int main() {
-  SDL_Init(SDL_INIT_VIDEO) && bail(1);
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) && bail(1);
   //SDL_SetRelativeMouseMode(SDL_ENABLE);
   atexit(quit);
 
@@ -111,6 +124,20 @@ void main() {\
   glVertexAttribPointer(vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(vertices_attr);
 
+  int const frequency =
+#ifdef __EMSCRIPTEN__
+  EM_ASM_INT_V({
+    try {
+        return new AudioContext().sampleRate;
+    } catch (e) {
+        return new webkitAudioContext().sampleRate; // safari only
+    }
+  });
+#else
+  44100;
+#endif
+  Mix_OpenAudio(frequency, MIX_DEFAULT_FORMAT, 2, 1024) && bail(8);
+  (sample = Mix_LoadWAV("assets/sample.wav")) || bail(9);
   ctx.prg = prg;
 
 #ifdef __EMSCRIPTEN__
