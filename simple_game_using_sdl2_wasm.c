@@ -46,15 +46,19 @@ void step(void * _ctx) {
       (Mix_PlayChannel(-1, sample, 0) == -1) && bail(5);
     }
   }
-  float mat[16];
+  glClearColor(0., 0., 0, 1.);
+  glClear(GL_COLOR_BUFFER_BIT);
   for (unsigned long i = 0; i < sizeof ctx->objs / sizeof *(ctx->objs); i++) {
     printf("%u: Pos %f %f\n", i, ctx->objs[i].pos[0], ctx->objs[i].pos[1]);
     printf("\n");
-
+    float mat[16] = {0.};
+    mat[0] = mat[5] = mat[10] = mat[15] = 1.;
+    mat[0] *= .2;
+    mat[5] *= .1;
+    mat[12] += ctx->objs[i].pos[0];
+    mat[13] += ctx->objs[i].pos[1];
     glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
     glUniformMatrix4fv(glGetUniformLocation(ctx->prg, "MV"), 1, GL_FALSE, mat);
-    glClearColor(0., 0., 0, 1.);
-    glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
 
