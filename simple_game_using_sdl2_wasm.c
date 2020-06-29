@@ -18,7 +18,7 @@
 Mix_Chunk * sample;
 
 struct Obj { float pos[2]; };
-struct Context { SDL_Window *window; double i; GLuint prg; struct Obj obj; };
+struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[2]; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
 int glbail(int i) { char str[10000]; glGetShaderInfoLog(i, 10000, NULL, str); SDL_Log("GL: %s, code %x\n", str, glGetError()); exit(i); return 1; }
@@ -33,8 +33,8 @@ void step(void * _ctx) {
     event.type == SDL_QUIT && bail(0);
     if (event.type == SDL_MOUSEMOTION) {
       SDL_MouseMotionEvent e = event.motion;
-      ctx->obj.pos[0] = (e.x*2./_W) - 1.;
-      ctx->obj.pos[1] = -1.*((e.y*2./_H) - 1.);
+      ctx->objs[0].pos[0] = (e.x*2./_W) - 1.;
+      ctx->objs[0].pos[1] = -1.*((e.y*2./_H) - 1.);
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
 #ifdef __EMSCRIPTEN__
@@ -46,12 +46,17 @@ void step(void * _ctx) {
       (Mix_PlayChannel(-1, sample, 0) == -1) && bail(5);
     }
   }
+  float mat[16];
+  for (unsigned long i = 0; i < sizeof ctx->objs / sizeof *(ctx->objs); i++) {
+    printf("%u: Pos %f %f\n", i, ctx->objs[i].pos[0], ctx->objs[i].pos[1]);
+    printf("\n");
 
-  glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
-  glUniform2fv(glGetUniformLocation(ctx->prg, "pos"), 1, ctx->obj.pos);
-  glClearColor(0., 0., 0, 1.);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
+    glUniformMatrix4fv(glGetUniformLocation(ctx->prg, "MV"), 1, GL_FALSE, mat);
+    glClearColor(0., 0., 0, 1.);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  }
 
   SDL_GL_SwapWindow(ctx->window);
 }
@@ -83,9 +88,10 @@ int main() {
   const char *vsrc =
 "\
 attribute vec2 vertice;\
+uniform mat4 MV;\
 varying vec2 coord;\
 void main() {\
-  gl_Position = vec4(vertice, 0., 1.);\
+  gl_Position = MV * vec4(vertice, 0., 1.);\
   coord = vertice;\
 }\
 ";
@@ -99,12 +105,9 @@ void main() {\
   char *fsrc =
 "\
 precision highp float;\
-varying vec2 coord;\
 uniform float time;\
-uniform vec2 pos;\
 void main() {\
-  float s = .1;\
-  gl_FragColor = vec4(vec3(step(abs(coord.x-pos.x), s)*step(abs(coord.y-pos.y), s)), 1.);\
+  gl_FragColor = vec4(vec3(.5), 1.);\
 }\
 ";
   GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
