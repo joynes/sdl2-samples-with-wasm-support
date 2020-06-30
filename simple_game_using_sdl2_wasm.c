@@ -17,7 +17,7 @@
 
 Mix_Chunk * sample;
 
-struct Obj { float pos[2]; };
+struct Obj { float x, y; int alive; };
 struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[2]; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
@@ -33,8 +33,8 @@ void step(void * _ctx) {
     event.type == SDL_QUIT && bail(0);
     if (event.type == SDL_MOUSEMOTION) {
       SDL_MouseMotionEvent e = event.motion;
-      ctx->objs[0].pos[0] = (e.x*2./_W) - 1.;
-      ctx->objs[0].pos[1] = -1.*((e.y*2./_H) - 1.);
+      ctx->objs[0].x = (e.x*2./_W) - 1.;
+      ctx->objs[0].y = -1.*((e.y*2./_H) - 1.);
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
 #ifdef __EMSCRIPTEN__
@@ -46,17 +46,29 @@ void step(void * _ctx) {
       (Mix_PlayChannel(-1, sample, 0) == -1) && bail(5);
     }
   }
+  int objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
+  for (int i = 1; i < objs_size; i++) {
+    struct Obj *obj = &ctx->objs[i];
+    if (!obj->alive) {
+      obj->alive = 1;
+      obj->x = 1.;
+      obj->y = 0.;
+    } else {
+      obj->x -= .03;
+      if (obj->x < -1.) obj->alive = 0;
+    }
+  }
   glClearColor(0., 0., 0, 1.);
   glClear(GL_COLOR_BUFFER_BIT);
-  for (unsigned long i = 0; i < sizeof ctx->objs / sizeof *(ctx->objs); i++) {
-    printf("%u: Pos %f %f\n", i, ctx->objs[i].pos[0], ctx->objs[i].pos[1]);
-    printf("\n");
+  for (int i = 0; i < objs_size; i++) {
+    //printf("%u: Pos %f %f\n", i, ctx->objs[i].pos[0], ctx->objs[i].pos[1]);
+    //printf("\n");
     float mat[16] = {0.};
     mat[0] = mat[5] = mat[10] = mat[15] = 1.;
     mat[0] *= .2;
     mat[5] *= .1;
-    mat[12] += ctx->objs[i].pos[0];
-    mat[13] += ctx->objs[i].pos[1];
+    mat[12] += ctx->objs[i].x;
+    mat[13] += ctx->objs[i].y;
     glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
     glUniformMatrix4fv(glGetUniformLocation(ctx->prg, "MV"), 1, GL_FALSE, mat);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
