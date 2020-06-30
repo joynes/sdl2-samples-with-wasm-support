@@ -17,7 +17,7 @@
 
 Mix_Chunk * sample;
 
-struct Obj { float x, y; int alive; };
+struct Obj { float x, y; int alive; float w, h; };
 struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[2]; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
@@ -51,24 +51,29 @@ void step(void * _ctx) {
     struct Obj *obj = &ctx->objs[i];
     if (!obj->alive) {
       obj->alive = 1;
-      obj->x = 1.;
+      obj->x = 0.;
       obj->y = 0.;
+      obj->w = .2;
+      obj->h = .1;
     } else {
-      obj->x -= .03;
+      //obj->x -= .03;
       if (obj->x < -1.) obj->alive = 0;
+    }
+    struct Obj *player = &ctx->objs[0];
+    if (player->x+player->w/2. > obj->x-obj->w/2. && player->x-player->w/2. < obj->x+obj->w/2.) {
+      printf("hit %f\n", ctx->i);
     }
   }
   glClearColor(0., 0., 0, 1.);
   glClear(GL_COLOR_BUFFER_BIT);
   for (int i = 0; i < objs_size; i++) {
+    struct Obj *obj = &ctx->objs[i];
     //printf("%u: Pos %f %f\n", i, ctx->objs[i].pos[0], ctx->objs[i].pos[1]);
     //printf("\n");
     float mat[16] = {0.};
     mat[0] = mat[5] = mat[10] = mat[15] = 1.;
-    mat[0] *= .2;
-    mat[5] *= .1;
-    mat[12] += ctx->objs[i].x;
-    mat[13] += ctx->objs[i].y;
+    mat[0] *= obj->w; mat[5] *= obj->h;
+    mat[12] += obj->x; mat[13] += obj->y;
     glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
     glUniformMatrix4fv(glGetUniformLocation(ctx->prg, "MV"), 1, GL_FALSE, mat);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -158,6 +163,9 @@ void main() {\
   Mix_OpenAudio(frequency, MIX_DEFAULT_FORMAT, 2, 1024) && bail(8);
   (sample = Mix_LoadWAV("assets/sample.wav")) || bail(9);
   ctx.prg = prg;
+  ctx.objs[0].w = .1;
+  ctx.objs[0].h = .07;
+
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(step, &ctx, -1, 1);
