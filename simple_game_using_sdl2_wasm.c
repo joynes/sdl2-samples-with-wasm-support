@@ -18,12 +18,24 @@
 Mix_Chunk * sample;
 
 struct Obj { float x, y; int alive; float w, h; };
-struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[2]; };
+struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[2]; int objs_size; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
 int glbail(int i) { char str[10000]; glGetShaderInfoLog(i, 10000, NULL, str); SDL_Log("GL: %s, code %x\n", str, glGetError()); exit(i); return 1; }
 void quit_on_glerr() { GLuint e; ((e = glGetError()) == GL_NO_ERROR) || bail(e); }
 void quit() { SDL_Quit(); }
+
+void reset_game(struct Context *ctx) {
+  ctx->objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
+  ctx->objs[0].x = -1.;
+  ctx->objs[0].y = 0.;
+  ctx->objs[0].w = .1;
+  ctx->objs[0].h = .07;
+  ctx->i = 0.;
+  for (int i = 1; i < ctx->objs_size; i++) {
+    ctx->objs[i].alive = 0;
+  }
+}
 
 void step(void * _ctx) {
   struct Context *ctx = (struct Context *)_ctx;
@@ -46,8 +58,7 @@ void step(void * _ctx) {
       (Mix_PlayChannel(-1, sample, 0) == -1) && bail(5);
     }
   }
-  int objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
-  for (int i = 1; i < objs_size; i++) {
+  for (int i = 1; i < ctx->objs_size; i++) {
     struct Obj *obj = &ctx->objs[i];
     if (!obj->alive) {
       obj->alive = 1;
@@ -62,12 +73,12 @@ void step(void * _ctx) {
     struct Obj *player = &ctx->objs[0];
     if (player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
         player->y+player->h > obj->y-obj->h && player->y-player->h < obj->y+obj->h) {
-      printf("hit %f\n", ctx->i);
+      reset_game(ctx);
     }
   }
   glClearColor(0., 0., 0, 1.);
   glClear(GL_COLOR_BUFFER_BIT);
-  for (int i = 0; i < objs_size; i++) {
+  for (int i = 0; i < ctx->objs_size; i++) {
     struct Obj *obj = &ctx->objs[i];
     //printf("%u: Pos %f %f\n", i, ctx->objs[i].pos[0], ctx->objs[i].pos[1]);
     //printf("\n");
@@ -163,10 +174,8 @@ void main() {\
 #endif
   Mix_OpenAudio(frequency, MIX_DEFAULT_FORMAT, 2, 1024) && bail(8);
   (sample = Mix_LoadWAV("assets/sample.wav")) || bail(9);
+  reset_game(&ctx);
   ctx.prg = prg;
-  ctx.objs[0].w = .1;
-  ctx.objs[0].h = .07;
-
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(step, &ctx, -1, 1);
