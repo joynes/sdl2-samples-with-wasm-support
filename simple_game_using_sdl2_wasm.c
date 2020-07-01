@@ -60,7 +60,8 @@ void step(void * _ctx) {
       if (obj->x < -1.) obj->alive = 0;
     }
     struct Obj *player = &ctx->objs[0];
-    if (player->x+player->w/2. > obj->x-obj->w/2. && player->x-player->w/2. < obj->x+obj->w/2.) {
+    if (player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
+        player->y+player->h > obj->y-obj->h && player->y-player->h < obj->y+obj->h) {
       printf("hit %f\n", ctx->i);
     }
   }
