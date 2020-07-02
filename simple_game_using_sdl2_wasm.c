@@ -62,12 +62,12 @@ void step(void * _ctx) {
     struct Obj *obj = &ctx->objs[i];
     if (!obj->alive) {
       obj->alive = 1;
-      obj->x = 0.;
-      obj->y = 0.;
+      obj->x = 1;
+      obj->y = (2.*rand() / (float)RAND_MAX) - 1.;
       obj->w = .2;
       obj->h = .1;
     } else {
-      //obj->x -= .03;
+      obj->x -= .03;
       if (obj->x < -1.) obj->alive = 0;
     }
     struct Obj *player = &ctx->objs[0];
