@@ -17,8 +17,8 @@
 
 Mix_Chunk * sample;
 
-struct Obj { float x, y; int alive; float w, h; };
-struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[2]; int objs_size; };
+struct Obj { float x, y; int alive; float w, h; float speed; };
+struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[5]; int objs_size; double next_spawn; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
 int glbail(int i) { char str[10000]; glGetShaderInfoLog(i, 10000, NULL, str); SDL_Log("GL: %s, code %x\n", str, glGetError()); exit(i); return 1; }
@@ -35,6 +35,7 @@ void reset_game(struct Context *ctx) {
   for (int i = 1; i < ctx->objs_size; i++) {
     ctx->objs[i].alive = 0;
   }
+  ctx->next_spawn = ctx->i;
 }
 
 void step(void * _ctx) {
@@ -60,20 +61,23 @@ void step(void * _ctx) {
   }
   for (int i = 1; i < ctx->objs_size; i++) {
     struct Obj *obj = &ctx->objs[i];
-    if (!obj->alive) {
+    if (!obj->alive && ctx->i > ctx->next_spawn) {
+      ctx->next_spawn = ctx->i + 60.*rand()/RAND_MAX;
       obj->alive = 1;
       obj->x = 1;
       obj->y = (2.*rand() / (float)RAND_MAX) - 1.;
       obj->w = .2;
       obj->h = .1;
+      obj->speed = .05;
     } else {
-      obj->x -= .03;
+      obj->x -= obj->speed;
       if (obj->x < -1.) obj->alive = 0;
     }
     struct Obj *player = &ctx->objs[0];
-    if (player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
+    if (0 && player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
         player->y+player->h > obj->y-obj->h && player->y-player->h < obj->y+obj->h) {
       reset_game(ctx);
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Game over", "You died!", NULL);
     }
   }
   glClearColor(0., 0., 0, 1.);
