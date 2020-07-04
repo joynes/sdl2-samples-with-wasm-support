@@ -130,10 +130,10 @@ int main() {
 "\
 attribute vec2 vertice;\
 uniform mat4 MV;\
-varying vec2 coord;\
+varying vec2 v_texcoord;\
 void main() {\
   gl_Position = MV * vec4(vertice, 0., 1.);\
-  coord = vertice;\
+  v_texcoord = (vertice+1.)/2.;\
 }\
 ";
 
@@ -143,19 +143,23 @@ void main() {\
   GLint status; glGetShaderiv(vert, GL_COMPILE_STATUS, &status); (status == GL_TRUE) || glbail(vert);
   glAttachShader(prg, vert);
 
-  char *fsrc =
-"\
-precision highp float;\
-uniform float time;\
-void main() {\
-  gl_FragColor = vec4(vec3(.5), 1.);\
-}\
-";
   GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+  {
+    char buf[1024*4];
+    int size = 0, read;
+    SDL_RWops *file = SDL_RWFromFile("assets/ship.frag", "r");
+    while ((read = SDL_RWread(file, buf, 1, sizeof(buf)))) size += read;
+    buf[size] = '\0';
+    char *pbuf[2];
 #ifdef __APPLE__
-  fsrc = fsrc+22;
+    pbuf[0] = "";
+#else
+    pbuf[0] = "precision highp float;";
 #endif
-  glShaderSource(frag, 1, (const char **)&fsrc, NULL);
+    pbuf[1] = buf;
+    glShaderSource(frag, 2, (const char **)&pbuf, NULL);
+    SDL_RWclose(file);
+  }
   glCompileShader(frag);
   glGetShaderiv(frag, GL_COMPILE_STATUS, &status); (status == GL_TRUE) || glbail(frag);
   glAttachShader(prg, frag);
