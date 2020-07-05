@@ -11,5 +11,5 @@ void main() {
   t1.x = t1.x/2. - .5;
   t1.y = t1.y - .3;
   c = c + max(0., (1. - length(t1*2.)));
-  gl_FragColor = vec4(vec3(c), 1.);
+  gl_FragColor = vec4(vec3(c), c);
 }

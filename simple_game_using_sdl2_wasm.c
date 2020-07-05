@@ -77,7 +77,7 @@ void step(void * _ctx) {
       obj->x -= obj->speed_x;
       obj->y -= obj->speed_y;
       struct Obj *player = &ctx->objs[0];
-      if (player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
+      if (0 && player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
           player->y+player->h > obj->y-obj->h && player->y-player->h < obj->y+obj->h) {
         reset_game(ctx);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Game over", "You died!", NULL);
@@ -171,6 +171,9 @@ void main() {\
   GLuint vertices_attr = glGetAttribLocation(prg, "vertice");
   glVertexAttribPointer(vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(vertices_attr);
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   int const frequency =
 #ifdef __EMSCRIPTEN__
