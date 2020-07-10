@@ -1,6 +1,6 @@
 #define GL_SILENCE_DEPRECATION
-#define _W 640
-#define _H 480
+#define _W 1334
+#define _H 750
 
 #include <math.h>
 #include <SDL2/SDL.h>
@@ -30,8 +30,8 @@ void reset_game(struct Context *ctx) {
   ctx->objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
   ctx->objs[0].x = -1.;
   ctx->objs[0].y = 0.;
-  ctx->objs[0].w = .1;
-  ctx->objs[0].h = .07;
+  ctx->objs[0].w = .2*_H/_W;
+  ctx->objs[0].h = .1;
   ctx->objs[0].alive = 1;
   ctx->i = 0.;
   for (int i = 1; i < ctx->objs_size; i++) {
