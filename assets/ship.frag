@@ -1,5 +1,6 @@
 uniform vec2 u_resolution;
 uniform vec2 u_mouse;
+uniform float u_time;
 varying vec2 v_texcoord;
 
 vec2 rot(vec2 t, float a) {
@@ -23,11 +24,6 @@ void main() {
     float r = fwidth(d);
     c = c + smoothstep(r, -r, d-.44);
   }
-//  t.y -= .8;
-//  t.x += 1.05;
-//  c = c + step(max(0., abs(t.x*2.) + t.y) + step(t.y, -.4), .1);
-  //c = max(abs(t.x), abs(t.y));
-  //c = smoothstep(.2+p, .2-p, length(max(abs(t)-.3, 0.)));
   {
     vec2 t = abs(t);
     float d = length(max(vec2(0.), t-vec2(.7, .4)));
@@ -39,8 +35,12 @@ void main() {
     float d = (t.x)*4. + t.y;
     float r = fwidth(d);
     c += smoothstep(r, -r, d-.8);
-    //c += step(d, .8);
-    //c = c + max(0., 1. - d);
+  }
+  {
+    vec2 t = abs(rot(t+vec2(-1., -.1), PI/6. + u_time/2.));
+    c = min(1., c);
+    float d = t.x+t.y;
+    c *= sqrt(sqrt(d/2.));
   }
   gl_FragColor = vec4(vec3(c), c);
 }

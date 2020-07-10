@@ -94,7 +94,7 @@ void step(void * _ctx) {
     mat[0] = mat[5] = mat[10] = mat[15] = 1.;
     mat[0] *= obj->w; mat[5] *= obj->h;
     mat[12] += obj->x; mat[13] += obj->y;
-    glUniform1f(glGetUniformLocation(ctx->prg, "time"), ctx->i/60.);
+    glUniform1f(glGetUniformLocation(ctx->prg, "u_time"), ctx->i/60.);
     glUniform2f(glGetUniformLocation(ctx->prg, "u_resolution"), obj->w*_W, obj->h*_H);
     glUniform2f(glGetUniformLocation(ctx->prg, "u_mouse"), obj->w*_W, obj->h*_H);
     glUniformMatrix4fv(glGetUniformLocation(ctx->prg, "MV"), 1, GL_FALSE, mat);
