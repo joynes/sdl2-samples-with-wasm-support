@@ -53,6 +53,11 @@ void draw_object(int i, struct Context *ctx) {
     glUniform2f(glGetUniformLocation(obj->prg, "u_resolution"), obj->w*_W, obj->h*_H);
     glUniform2f(glGetUniformLocation(obj->prg, "u_mouse"), obj->w*_W, obj->h*_H);
     glUniformMatrix4fv(glGetUniformLocation(obj->prg, "MV"), 1, GL_FALSE, mat);
+
+    GLuint vertices_attr = glGetAttribLocation(obj->prg, "vertice");
+    glVertexAttribPointer(vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(vertices_attr);
+
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
@@ -110,28 +115,7 @@ void step(void * _ctx) {
   SDL_GL_SwapWindow(ctx->window);
 }
 
-int main() {
-  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) && bail(1);
-  //SDL_SetRelativeMouseMode(SDL_ENABLE);
-  atexit(quit);
-
-  struct Context ctx = {0};
-
-  (ctx.window = SDL_CreateWindow("Render color", 0, 0, _W, _H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) || bail(2);
-  SDL_GL_CreateContext(ctx.window);
-  SDL_GL_SetSwapInterval(1);
-
-  GLfloat vertices[] = {
-    -1., -1.,
-    1., -1.,
-    1., 1.,
-    -1., 1.
-  };
-  GLuint buf;
-  glGenBuffers(1, &buf);
-  glBindBuffer(GL_ARRAY_BUFFER, buf);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8, vertices, GL_STATIC_DRAW);
-
+GLuint open_shader(char *path) {
   GLuint prg = glCreateProgram();
 
   const char *vsrc =
@@ -155,7 +139,7 @@ void main() {\
   {
     char buf[1024*4];
     int size = 0, read;
-    SDL_RWops *file = SDL_RWFromFile("assets/ship.frag", "r");
+    SDL_RWops *file = SDL_RWFromFile(path, "r");
     while ((read = SDL_RWread(file, buf, 1, sizeof(buf)))) size += read;
     buf[size] = '\0';
     char *pbuf[2];
@@ -174,10 +158,31 @@ void main() {\
 
   glLinkProgram(prg);
   glGetProgramiv(prg, GL_LINK_STATUS, &status); (status == GL_TRUE) || bail(4);
+  return prg;
+}
 
-  GLuint vertices_attr = glGetAttribLocation(prg, "vertice");
-  glVertexAttribPointer(vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(vertices_attr);
+int main() {
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) && bail(1);
+  //SDL_SetRelativeMouseMode(SDL_ENABLE);
+  atexit(quit);
+
+  struct Context ctx = {0};
+
+  (ctx.window = SDL_CreateWindow("Render color", 0, 0, _W, _H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) || bail(2);
+  SDL_GL_CreateContext(ctx.window);
+  SDL_GL_SetSwapInterval(1);
+
+  GLfloat vertices[] = {
+    -1., -1.,
+    1., -1.,
+    1., 1.,
+    -1., 1.
+  };
+  GLuint buf;
+  glGenBuffers(1, &buf);
+  glBindBuffer(GL_ARRAY_BUFFER, buf);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8, vertices, GL_STATIC_DRAW);
+
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -197,9 +202,10 @@ void main() {\
   Mix_OpenAudio(frequency, MIX_DEFAULT_FORMAT, 2, 1024) && bail(8);
   (sample = Mix_LoadWAV("assets/sample.wav")) || bail(9);
   reset_game(&ctx);
-  ctx.objs[0].prg = prg;
+  ctx.objs[0].prg = open_shader("assets/ship.frag");
+  GLuint prg_ship = open_shader("assets/rock.frag");
   for (int i = 1; i < ctx.objs_size; i++) {
-    ctx.objs[i].prg = prg;
+    ctx.objs[i].prg = prg_ship;
   }
 
 #ifdef __EMSCRIPTEN__
