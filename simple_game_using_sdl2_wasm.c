@@ -17,8 +17,8 @@
 
 Mix_Chunk * sample;
 
-struct Obj { float x, y; int alive; float w, h; float speed_x, speed_y; };
-struct Context { SDL_Window *window; double i; GLuint prg; struct Obj objs[10]; int objs_size; double next_spawn; };
+struct Obj { float x, y; int alive; float w, h; float speed_x, speed_y; GLuint prg; };
+struct Context { SDL_Window *window; double i; struct Obj objs[10]; int objs_size; double next_spawn; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
 int glbail(int i) { char str[10000]; glGetShaderInfoLog(i, 10000, NULL, str); SDL_Log("GL: %s, code %x\n", str, glGetError()); exit(i); return 1; }
@@ -38,6 +38,22 @@ void reset_game(struct Context *ctx) {
     ctx->objs[i].alive = 0;
   }
   ctx->next_spawn = ctx->i;
+}
+
+void draw_object(int i, struct Context *ctx) {
+    struct Obj *obj = &ctx->objs[i];
+    if (!obj->alive) return;
+    float mat[16] = {0.};
+    mat[0] = mat[5] = mat[10] = mat[15] = 1.;
+    mat[0] *= obj->w; mat[5] *= obj->h;
+    mat[12] += obj->x; mat[13] += obj->y;
+
+    glUseProgram(obj->prg);
+    glUniform1f(glGetUniformLocation(obj->prg, "u_time"), ctx->i/60.);
+    glUniform2f(glGetUniformLocation(obj->prg, "u_resolution"), obj->w*_W, obj->h*_H);
+    glUniform2f(glGetUniformLocation(obj->prg, "u_mouse"), obj->w*_W, obj->h*_H);
+    glUniformMatrix4fv(glGetUniformLocation(obj->prg, "MV"), 1, GL_FALSE, mat);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 void step(void * _ctx) {
@@ -88,17 +104,7 @@ void step(void * _ctx) {
   glClearColor(0., 0., 0, 1.);
   glClear(GL_COLOR_BUFFER_BIT);
   for (int i = 0; i < ctx->objs_size; i++) {
-    struct Obj *obj = &ctx->objs[i];
-    if (!obj->alive) continue;
-    float mat[16] = {0.};
-    mat[0] = mat[5] = mat[10] = mat[15] = 1.;
-    mat[0] *= obj->w; mat[5] *= obj->h;
-    mat[12] += obj->x; mat[13] += obj->y;
-    glUniform1f(glGetUniformLocation(ctx->prg, "u_time"), ctx->i/60.);
-    glUniform2f(glGetUniformLocation(ctx->prg, "u_resolution"), obj->w*_W, obj->h*_H);
-    glUniform2f(glGetUniformLocation(ctx->prg, "u_mouse"), obj->w*_W, obj->h*_H);
-    glUniformMatrix4fv(glGetUniformLocation(ctx->prg, "MV"), 1, GL_FALSE, mat);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    draw_object(i, ctx);
   }
 
   SDL_GL_SwapWindow(ctx->window);
@@ -168,7 +174,6 @@ void main() {\
 
   glLinkProgram(prg);
   glGetProgramiv(prg, GL_LINK_STATUS, &status); (status == GL_TRUE) || bail(4);
-  glUseProgram(prg);
 
   GLuint vertices_attr = glGetAttribLocation(prg, "vertice");
   glVertexAttribPointer(vertices_attr, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -192,7 +197,10 @@ void main() {\
   Mix_OpenAudio(frequency, MIX_DEFAULT_FORMAT, 2, 1024) && bail(8);
   (sample = Mix_LoadWAV("assets/sample.wav")) || bail(9);
   reset_game(&ctx);
-  ctx.prg = prg;
+  ctx.objs[0].prg = prg;
+  for (int i = 1; i < ctx.objs_size; i++) {
+    ctx.objs[i].prg = prg;
+  }
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(step, &ctx, -1, 1);
