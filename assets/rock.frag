@@ -8,5 +8,7 @@ void main() {
   float r = .8;
   float p = fwidth(c)*1.5;
   c = smoothstep(r+p, r-p, c);
+  c *= length(t);
+  c = sqrt(c);
   gl_FragColor = vec4(vec3(c), c);
 }

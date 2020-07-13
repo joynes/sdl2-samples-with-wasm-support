@@ -90,7 +90,7 @@ void step(void * _ctx) {
       obj->x = 1 + obj->w;
       obj->y = 2.*rnd() - 1.;
       obj->w = .2*_H/_W;
-      obj->h = .2*_H/_W;
+      obj->h = .2;
       obj->speed_x = .04 - .02*rnd();
       obj->speed_y = (.02*rnd() - .01);
     }
@@ -98,10 +98,13 @@ void step(void * _ctx) {
       obj->x -= obj->speed_x;
       obj->y -= obj->speed_y;
       struct Obj *player = &ctx->objs[0];
-      if (0 && player->x+player->w > obj->x-obj->w && player->x-player->w < obj->x+obj->w &&
-          player->y+player->h > obj->y-obj->h && player->y-player->h < obj->y+obj->h) {
+      float e = .5;
+      if (player->x+player->w*.6 > obj->x-obj->w*e && player->x-player->w*.6 < obj->x+obj->w*e &&
+          player->y+player->h*.5 > obj->y-obj->h*e && player->y-player->h*.5 < obj->y+obj->h*e) {
+        char buf[200];
+        snprintf(buf, 200, "Points: %f", ctx->i);
         reset_game(ctx);
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Game over", "You died!", NULL);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Game over", buf, NULL);
       }
       if (obj->x < -1.-obj->w) { obj->alive = 0; }
     }
