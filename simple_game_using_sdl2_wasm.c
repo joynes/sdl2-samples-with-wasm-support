@@ -89,8 +89,8 @@ void step(void * _ctx) {
       obj->alive = 1;
       obj->x = 1 + obj->w;
       obj->y = 2.*rnd() - 1.;
-      obj->w = .2;
-      obj->h = .1;
+      obj->w = .2*_H/_W;
+      obj->h = .2*_H/_W;
       obj->speed_x = .04 - .02*rnd();
       obj->speed_y = (.02*rnd() - .01);
     }
