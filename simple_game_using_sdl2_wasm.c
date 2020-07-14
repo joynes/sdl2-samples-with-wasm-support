@@ -1,6 +1,5 @@
 #define GL_SILENCE_DEPRECATION
-#define _W 1334
-#define _H 750
+#define _R (1920./1080)
 
 #include <math.h>
 #include <SDL2/SDL.h>
@@ -19,7 +18,7 @@
 Mix_Chunk * sample;
 
 struct Obj { float x, y; int alive; float w, h; float speed_x, speed_y; GLuint prg; };
-struct Context { SDL_Window *window; double i; struct Obj objs[10]; int objs_size; double next_spawn; };
+struct Context { SDL_Window *window; int w, h; double i; struct Obj objs[10]; int objs_size; double next_spawn; };
 
 int bail(int i) { if (i) SDL_Log("Error: %s, code %d\n", SDL_GetError(), i); exit(i); return 1; }
 int glbail(int i) { char str[10000]; glGetShaderInfoLog(i, 10000, NULL, str); SDL_Log("GL: %s, code %x\n", str, glGetError()); exit(i); return 1; }
@@ -31,7 +30,7 @@ void reset_game(struct Context *ctx) {
   ctx->objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
   ctx->objs[0].x = -1.;
   ctx->objs[0].y = 0.;
-  ctx->objs[0].w = .2*_H/_W;
+  ctx->objs[0].w = .2/_R;
   ctx->objs[0].h = .1;
   ctx->objs[0].alive = 1;
   ctx->i = 0.;
@@ -51,8 +50,8 @@ void draw_object(int i, struct Context *ctx) {
 
     glUseProgram(obj->prg);
     glUniform1f(glGetUniformLocation(obj->prg, "u_time"), ctx->i/60.);
-    glUniform2f(glGetUniformLocation(obj->prg, "u_resolution"), obj->w*_W, obj->h*_H);
-    glUniform2f(glGetUniformLocation(obj->prg, "u_mouse"), obj->w*_W, obj->h*_H);
+    glUniform2f(glGetUniformLocation(obj->prg, "u_resolution"), obj->w*ctx->w, obj->h*ctx->h);
+    glUniform2f(glGetUniformLocation(obj->prg, "u_mouse"), obj->w*ctx->w, obj->h*ctx->h);
     glUniformMatrix4fv(glGetUniformLocation(obj->prg, "MV"), 1, GL_FALSE, mat);
 
     GLuint vertices_attr = glGetAttribLocation(obj->prg, "vertice");
@@ -70,8 +69,8 @@ void step(void * _ctx) {
     event.type == SDL_QUIT && bail(0);
     if (event.type == SDL_MOUSEMOTION) {
       SDL_MouseMotionEvent e = event.motion;
-      ctx->objs[0].x = (e.x*2./_W) - 1.;
-      ctx->objs[0].y = -1.*((e.y*2./_H) - 1.);
+      ctx->objs[0].x = (e.x*2./ctx->w) - 1.;
+      ctx->objs[0].y = -1.*((e.y*2./ctx->h) - 1.);
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
 #ifdef __EMSCRIPTEN__
@@ -90,7 +89,7 @@ void step(void * _ctx) {
       obj->alive = 1;
       obj->x = 1 + obj->w;
       obj->y = 2.*rnd() - 1.;
-      obj->w = .2*_H/_W;
+      obj->w = .2/_R;
       obj->h = .2;
       obj->speed_x = .04 - .02*rnd();
       obj->speed_y = (.02*rnd() - .01);
@@ -167,12 +166,16 @@ void main() {\
 
 int main() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) && bail(1);
-  //SDL_SetRelativeMouseMode(SDL_ENABLE);
+  SDL_DisplayMode dm;
+  SDL_GetDesktopDisplayMode(0, &dm) && bail(4);
+  printf("W %d, H %d\n", dm.w, dm.h);
   atexit(quit);
 
   struct Context ctx = {0};
+  ctx.w = dm.w*.8;
+  ctx.h = ctx.w/_R;
 
-  (ctx.window = SDL_CreateWindow("Render color", 0, 0, _W, _H, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) || bail(2);
+  (ctx.window = SDL_CreateWindow("Render color", 0, 0, ctx.w, ctx.h, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)) || bail(2);
   SDL_GL_CreateContext(ctx.window);
   SDL_GL_SetSwapInterval(1);
 
