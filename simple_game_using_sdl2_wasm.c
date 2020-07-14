@@ -11,8 +11,9 @@
 #endif
 #ifdef __EMSCRIPTEN__
 #include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_opengles2.h>
+#include <GLES2/gl2.h>
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 Mix_Chunk * sample;
@@ -186,7 +187,6 @@ int main() {
   glBindBuffer(GL_ARRAY_BUFFER, buf);
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8, vertices, GL_STATIC_DRAW);
 
-
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -199,6 +199,7 @@ int main() {
         return new webkitAudioContext().sampleRate; // safari only
     }
   });
+  printf("test %d, true is %d, context %d\n", emscripten_webgl_enable_extension(emscripten_webgl_get_current_context(), "GL_OES_standard_derivatives"),EM_TRUE, emscripten_webgl_get_current_context());
 #else
   44100;
 #endif

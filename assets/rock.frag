@@ -6,7 +6,7 @@ void main() {
   float rad = atan(t.y, t.x);
   float c = length(t) + .07*sin(rad*5. + u_time*3.);
   float r = .8;
-  float p = fwidth(c)*1.5;
+  float p = .03;//float p = fwidth(c)*1.5;
   c = smoothstep(r+p, r-p, c);
   c *= length(t);
   c = sqrt(c);

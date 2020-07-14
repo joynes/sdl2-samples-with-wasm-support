@@ -21,19 +21,19 @@ void main() {
     t.x = t.x/2.5 - .4;
     t.y = t.y - .5;
     float d = length(t*2.);
-    float r = fwidth(d);
+    float r = .03; //float r = fwidth(d);
     c = c + smoothstep(r, -r, d-.44);
   }
   {
     vec2 t = abs(t);
     float d = length(max(vec2(0.), t-vec2(.7, .4)));
-    float r = fwidth(d);
+    float r = .03; //float r = fwidth(d);
     c += smoothstep(r, -r, d-.05);
   }
   {
     vec2 t = abs(rot(t+vec2(.6, -.3), PI/4.));
     float d = (t.x)*4. + t.y;
-    float r = fwidth(d);
+    float r = .03;//float r = fwidth(d);
     c += smoothstep(r, -r, d-.8);
   }
   {
