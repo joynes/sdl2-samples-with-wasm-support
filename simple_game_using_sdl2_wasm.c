@@ -85,12 +85,13 @@ void step(void * _ctx) {
   for (int i = 1; i < ctx->objs_size; i++) {
     struct Obj *obj = &ctx->objs[i];
     if (!obj->alive && ctx->i > ctx->next_spawn) {
-      ctx->next_spawn = ctx->i + 30.*rnd();
+      ctx->next_spawn = ctx->i + 20.*rnd();
       obj->alive = 1;
       obj->x = 1 + obj->w;
       obj->y = 2.*rnd() - 1.;
-      obj->w = .2/_R;
-      obj->h = .2;
+      float s = rnd();
+      obj->w = (.1+s*.2)/_R;
+      obj->h = .1+s*.2;
       obj->speed_x = .04 - .02*rnd();
       obj->speed_y = (.02*rnd() - .01);
     }

@@ -192,7 +192,7 @@ var Module = typeof Module !== 'undefined' ? Module : {};
     }
   
    }
-   loadPackage({"files": [{"filename": "/assets/simple.frag", "start": 0, "end": 75, "audio": 0}, {"filename": "/assets/rock.frag", "start": 75, "end": 411, "audio": 0}, {"filename": "/assets/ship.frag", "start": 411, "end": 1509, "audio": 0}, {"filename": "/assets/sample.wav", "start": 1509, "end": 85521, "audio": 1}], "remote_package_size": 85521, "package_uuid": "a5d2f36a-b767-482c-9bd2-d2cd368d2a55"});
+   loadPackage({"files": [{"filename": "/assets/simple.frag", "start": 0, "end": 75, "audio": 0}, {"filename": "/assets/.rock.frag.swp", "start": 75, "end": 12363, "audio": 0}, {"filename": "/assets/rock.frag", "start": 12363, "end": 12699, "audio": 0}, {"filename": "/assets/ship.frag", "start": 12699, "end": 13797, "audio": 0}, {"filename": "/assets/sample.wav", "start": 13797, "end": 97809, "audio": 1}], "remote_package_size": 97809, "package_uuid": "16615f75-62d7-4d97-88e5-5d40ac1d473e"});
   
   })();
   
