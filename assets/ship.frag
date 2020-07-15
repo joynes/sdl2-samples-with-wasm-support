@@ -21,7 +21,7 @@ void main() {
     t.x = t.x/2.5 - .4;
     t.y = t.y - .5;
     float d = length(t*2.);
-    float r = .03; //float r = fwidth(d);
+    float r = fwidth(d);
     c = c + smoothstep(r, -r, d-.44);
   }
   {
@@ -40,7 +40,7 @@ void main() {
     vec2 t = abs(rot(t+vec2(-1., -.1), PI/6. + u_time/2.));
     c = min(1., c);
     float d = t.x+t.y;
-    c *= sqrt(sqrt(d/2.));
+    d *= sqrt(sqrt(d/2.));
+    gl_FragColor = vec4(vec3(d), c);
   }
-  gl_FragColor = vec4(vec3(c), c);
 }

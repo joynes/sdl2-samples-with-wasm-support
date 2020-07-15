@@ -15,6 +15,8 @@
 #include <emscripten/html5.h>
 #endif
 
+#define BKGND 0
+#define SHIP 1
 Mix_Chunk * sample;
 
 struct Obj { float x, y; int alive; float w, h; float speed_x, speed_y; GLuint prg; };
@@ -28,13 +30,18 @@ float rnd() { return rand() / (float)RAND_MAX; }
 void reset_game(struct Context *ctx) {
   srand(1);
   ctx->objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
-  ctx->objs[0].x = -1.;
-  ctx->objs[0].y = 0.;
-  ctx->objs[0].w = .2/_R;
-  ctx->objs[0].h = .1;
-  ctx->objs[0].alive = 1;
+  ctx->objs[SHIP].x = -1.;
+  ctx->objs[SHIP].y = 0.;
+  ctx->objs[SHIP].w = .2/_R;
+  ctx->objs[SHIP].h = .1;
+  ctx->objs[SHIP].alive = 1;
+  ctx->objs[BKGND].alive = 1;
+  ctx->objs[BKGND].x = 0.;
+  ctx->objs[BKGND].y = 0.;
+  ctx->objs[BKGND].w = 1.;
+  ctx->objs[BKGND].h = 1.;
   ctx->i = 0.;
-  for (int i = 1; i < ctx->objs_size; i++) {
+  for (int i = SHIP+1; i < ctx->objs_size; i++) {
     ctx->objs[i].alive = 0;
   }
   ctx->next_spawn = ctx->i;
@@ -69,8 +76,8 @@ void step(void * _ctx) {
     event.type == SDL_QUIT && bail(0);
     if (event.type == SDL_MOUSEMOTION) {
       SDL_MouseMotionEvent e = event.motion;
-      ctx->objs[0].x = (e.x*2./ctx->w) - 1.;
-      ctx->objs[0].y = -1.*((e.y*2./ctx->h) - 1.);
+      ctx->objs[SHIP].x = (e.x*2./ctx->w) - 1.;
+      ctx->objs[SHIP].y = -1.*((e.y*2./ctx->h) - 1.);
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
 #ifdef __EMSCRIPTEN__
@@ -82,7 +89,7 @@ void step(void * _ctx) {
       (Mix_PlayChannel(-1, sample, 0) == -1) && bail(5);
     }
   }
-  for (int i = 1; i < ctx->objs_size; i++) {
+  for (int i = SHIP+1; i < ctx->objs_size; i++) {
     struct Obj *obj = &ctx->objs[i];
     if (!obj->alive && ctx->i > ctx->next_spawn) {
       ctx->next_spawn = ctx->i + 20.*rnd();
@@ -98,7 +105,7 @@ void step(void * _ctx) {
     if (obj->alive) {
       obj->x -= obj->speed_x;
       obj->y -= obj->speed_y;
-      struct Obj *player = &ctx->objs[0];
+      struct Obj *player = &ctx->objs[SHIP];
       float e = .5;
       if (player->x+player->w*.6 > obj->x-obj->w*e && player->x-player->w*.6 < obj->x+obj->w*e &&
           player->y+player->h*.5 > obj->y-obj->h*e && player->y-player->h*.5 < obj->y+obj->h*e) {
@@ -203,20 +210,21 @@ int main() {
         return new webkitAudioContext().sampleRate; // safari only
     }
   });
-  printf("test %d, true is %d, context %d\n", emscripten_webgl_enable_extension(emscripten_webgl_get_current_context(), "GL_OES_standard_derivatives"),EM_TRUE, emscripten_webgl_get_current_context());
 #else
   44100;
 #endif
   Mix_OpenAudio(frequency, MIX_DEFAULT_FORMAT, 2, 1024) && bail(8);
   (sample = Mix_LoadWAV("assets/sample.wav")) || bail(9);
   reset_game(&ctx);
-  ctx.objs[0].prg = open_shader("assets/ship.frag");
+  ctx.objs[BKGND].prg = open_shader("assets/bkgnd.frag");
+  ctx.objs[SHIP].prg = open_shader("assets/ship.frag");
   GLuint prg_ship = open_shader("assets/rock.frag");
-  for (int i = 1; i < ctx.objs_size; i++) {
+  for (int i = SHIP+1; i < ctx.objs_size; i++) {
     ctx.objs[i].prg = prg_ship;
   }
 
 #ifdef __EMSCRIPTEN__
+  printf("test %d, true is %d, context %d\n", emscripten_webgl_enable_extension(emscripten_webgl_get_current_context(), "GL_OES_standard_derivatives"),EM_TRUE, emscripten_webgl_get_current_context());
   emscripten_set_main_loop_arg(step, &ctx, -1, 1);
 #else
   while(1) step(&ctx);
