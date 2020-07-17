@@ -107,7 +107,7 @@ void step(void * _ctx) {
       obj->y -= obj->speed_y;
       struct Obj *player = &ctx->objs[SHIP];
       float e = .5;
-      if (player->x+player->w*.6 > obj->x-obj->w*e && player->x-player->w*.6 < obj->x+obj->w*e &&
+      if (0 && player->x+player->w*.6 > obj->x-obj->w*e && player->x-player->w*.6 < obj->x+obj->w*e &&
           player->y+player->h*.5 > obj->y-obj->h*e && player->y-player->h*.5 < obj->y+obj->h*e) {
         char buf[200];
         snprintf(buf, 200, "Points: %f", ctx->i);

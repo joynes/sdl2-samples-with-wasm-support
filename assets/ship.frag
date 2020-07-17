@@ -21,7 +21,7 @@ void main() {
     t.x = t.x/2.5 - .4;
     t.y = t.y - .5;
     float d = length(t*2.);
-    float r = fwidth(d);
+    float r = .03; //float r = fwidth(d);
     c = c + smoothstep(r, -r, d-.44);
   }
   {
