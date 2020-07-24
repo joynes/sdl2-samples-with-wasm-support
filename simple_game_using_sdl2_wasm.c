@@ -28,6 +28,7 @@ void quit_on_glerr() { GLuint e; ((e = glGetError()) == GL_NO_ERROR) || bail(e);
 void quit() { SDL_Quit(); }
 float rnd() { return rand() / (float)RAND_MAX; }
 void reset_game(struct Context *ctx) {
+  SDL_ShowCursor(SDL_DISABLE);
   srand(1);
   ctx->objs_size = sizeof ctx->objs / sizeof *(ctx->objs);
   ctx->objs[SHIP].x = -1.;
@@ -76,8 +77,13 @@ void step(void * _ctx) {
     event.type == SDL_QUIT && bail(0);
     if (event.type == SDL_MOUSEMOTION) {
       SDL_MouseMotionEvent e = event.motion;
-      ctx->objs[SHIP].x = (e.x*2./ctx->w) - 1.;
-      ctx->objs[SHIP].y = -1.*((e.y*2./ctx->h) - 1.);
+      struct Obj *ship = &ctx->objs[SHIP];
+      ship->x = (e.x*2./ctx->w) - 1.;
+      ship->y = -1.*((e.y*2./ctx->h) - 1.);
+#ifdef __ANDROID__
+      ship->x += 2.*e.xrel/(float)ctx->w;
+      ship->y += -2.*e.yrel/(float)ctx->h;
+#endif
     }
     if (event.type == SDL_MOUSEBUTTONDOWN) {
 #ifdef __EMSCRIPTEN__
@@ -107,7 +113,7 @@ void step(void * _ctx) {
       obj->y -= obj->speed_y;
       struct Obj *player = &ctx->objs[SHIP];
       float e = .5;
-      if (0 && player->x+player->w*.6 > obj->x-obj->w*e && player->x-player->w*.6 < obj->x+obj->w*e &&
+      if (player->x+player->w*.6 > obj->x-obj->w*e && player->x-player->w*.6 < obj->x+obj->w*e &&
           player->y+player->h*.5 > obj->y-obj->h*e && player->y-player->h*.5 < obj->y+obj->h*e) {
         char buf[200];
         snprintf(buf, 200, "Points: %f", ctx->i);
