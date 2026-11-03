@@ -1,0 +1,74 @@
+{
+  "sourceRepository": "https://github.com/joynes/sdl2-samples-with-wasm-support",
+  "sourceCommit": "184adda998c5b91e07c0f7cfebe464d87cd4b09a",
+  "sourcePeriod": "2020-07",
+  "category": "retro",
+  "adaptation": "AI web host; original SDL2 C/WebGL/WebAssembly engine unchanged",
+  "nativeEnginePreserved": true,
+  "originalRuntimeSha256": {
+    "engine/simple_game_using_sdl2_wasm.js": "a68d8e655e8b060c2674a7b8a251889b04c77816a89a5a5b0a52d35e30d32b49",
+    "engine/simple_game_using_sdl2_wasm.wasm": "cc154d82acc79d92d419909064cee2e0a444925959f39224157196984eb6ff49",
+    "engine/simple_game_using_sdl2_wasm.data": "8b9e3ba7c7d9dde694788f026715186e900176606f30dcf648f9779a26d4287e"
+  },
+  "sourceSha256": "f64d5120f1837fe072b47155ee71fc16482dbbc2798965bbd2167de3fa175a58",
+  "licenseSha256": "c341890046b73102f5bb63b9b567913766467930e9d34ae2935b5a134da18cab",
+  "dataPackageBytes": 86269,
+  "bundledAssets": [
+    {
+      "filename": "/assets/simple.frag",
+      "start": 0,
+      "end": 75,
+      "audio": 0,
+      "sha256": "e6e09693cd91cb4c0ff9dd45a87629104854bf5013fae19827712c2eb9cae720"
+    },
+    {
+      "filename": "/assets/rock.frag",
+      "start": 75,
+      "end": 418,
+      "audio": 0,
+      "sha256": "74e43e7675fc77d3dc71f0391b600081a830c9d5d985e53934464b8007ae82f7"
+    },
+    {
+      "filename": "/assets/bkgnd.frag",
+      "start": 418,
+      "end": 1157,
+      "audio": 0,
+      "sha256": "dd7045d8bee7aa8b7b1ebaabfdb244fcd259f99732ca0e652bdc544edc5f63c9"
+    },
+    {
+      "filename": "/assets/ship.frag",
+      "start": 1157,
+      "end": 2257,
+      "audio": 0,
+      "sha256": "fafa1e5a0d06c13b6b84e07dd2ed50f91b4abdf6e8f36044112d94d9ed73f86c"
+    },
+    {
+      "filename": "/assets/sample.wav",
+      "start": 2257,
+      "end": 86269,
+      "audio": 1,
+      "sha256": "424543bd24798428b3e762cbc2ff4495f0edfb2ba54f4c33340af28d504b70a4"
+    }
+  ],
+  "originalRules": {
+    "objectSlots": 10,
+    "backgroundSlots": 1,
+    "shipSlots": 1,
+    "rockSlots": 8,
+    "score": "native frame count on collision",
+    "resetSeed": 1,
+    "rockHeight": [
+      0.1,
+      0.3
+    ],
+    "rockSpeedX": [
+      0.02,
+      0.04
+    ],
+    "rockSpeedY": [
+      -0.01,
+      0.01
+    ],
+    "infiniteSurvival": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "game": "sdl-space",
+  "date": "2026-11-03",
+  "homepageCommit": "4cf29c7574fd6c803bb66dba8fb77786f5eee226",
+  "sourceHead": "184adda998c5b91e07c0f7cfebe464d87cd4b09a",
+  "sourceWorktree": null,
+  "snapshotPaths": [
+    "games/sdl-space",
+    "scripts/test-sdl-space-browser.cjs",
+    "scripts/sdl-space-observer.cjs",
+    "scripts/test-sdl-space.mjs",
+    "docs/games/sdl-space.md"
+  ],
+  "status": "Baseline saved before renewed browser audit. No new verification claimed."
+}
