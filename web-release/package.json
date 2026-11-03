@@ -4,7 +4,8 @@
   "scripts": {
     "test:1": "node scripts/test-sdl-space-browser.cjs",
     "test:2": "node scripts/test-sdl-space-input.cjs",
-    "test:4": "node scripts/test-sdl-space.mjs"
+    "test:3": "node scripts/test-sdl-space-fullscreen.cjs",
+    "test:5": "node scripts/test-sdl-space.mjs"
   },
   "devDependencies": {
     "playwright": "1.58.2"

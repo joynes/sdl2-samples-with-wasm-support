@@ -2,15 +2,18 @@
   "game": "sdl-space",
   "date": "2026-11-03",
   "baselineCommit": "ceef3ab7d1719c49789a917ce539f56bc9d2ca47",
-  "result": "passed",
+  "result": "local-passed-awaiting-live",
   "scope": "Actual Chromium desktop and mobile browser contexts, with touch enabled and keyboard events in both. Physical phones/tablets and Safari are not covered by this result.",
-  "checks": "Passed local and canonical-live full native survival/collision/score/replay/audio/recovery tests and expanded desktop/mobile keyboard plus real touch input in portrait/landscape. Includes aliases/diagonal/release, stale repeats after pause/focus, keyboard native audio/restart, two-finger ownership/cancel, held-touch restart, actual frame-window blur/resume and complete visible board after returning from the menu. Reading and five quiz frame regressions passed live; driving regression passed locally. All 12 live release files SHA256 match Pages 41712783066 / 1baa58a2d93ed0fdc19a7b19f943848e9f54b393.",
-  "findings": "Fixed stale repeats, added Space for original native sound and native touch mouse-up cleanup; English interface/notes. Fixed homepage landscape scrolling when returning to game focus. A live quiz regression initially clicked before its module loaded; harness now waits for full document readiness and passes. All original engine/data/license/assets unchanged.",
+  "checks": "Local full native survival >=300 frames, all eight rock slots, collision/frame score/replay, actual audio, five engine/host failures with playable retry, portrait/landscape, keyboard aliases/axes/release/repeat/focus and touch ownership/cancel/restart passed. New native fullscreen suite passed in cached Chromium and installed Chrome at desktop/phone portrait/landscape: real native keyboard/touch movement and audio, all drag directions, second-finger pause/resume/reset/fullscreen, rotation with correct coordinates, old-contact restart, full WebGL viewport, in-scene control bounds, iframe fullscreen and missing-API Escape fallback. Car full/input and seven earlier game frame regressions passed; root unit/preservation and game/music navigation passed.",
+  "findings": "Moved controls into the scene and added fullscreen without changing original engine/data/license bytes. Reproduced and fixed rotated-fullscreen pointer scaling by inverting SDL CSS/backbuffer scaling. Native touch audio resumes after a restarted engine. Disabled pause cannot resume a finished round. Shared helper cleans input once per fullscreen state change. Landscape frame focus fits immediately; local game page URLs carry release versions to refresh cached HTML. English help remains short.",
   "testScripts": [
     "scripts/test-sdl-space-browser.cjs",
     "scripts/test-sdl-space-input.cjs",
+    "scripts/test-sdl-space-fullscreen.cjs",
     "scripts/sdl-space-observer.cjs",
-    "scripts/test-sdl-space.mjs"
+    "scripts/test-sdl-space.mjs",
+    "assets/game-view.mjs",
+    "docs/games/sdl-space.md"
   ],
   "publicUrl": "https://joynes.github.io/joynes.se/games/sdl-space/"
 }

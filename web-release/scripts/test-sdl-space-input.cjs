@@ -6,8 +6,8 @@ const home=process.env.HOMEPAGE_BASE_URL||'http://127.0.0.1:8767/';
 async function ship(p,a){return(await observe(p,a)).objects[1];}
 function still(a,b){assert(Math.abs(a.x-b.x)<.02&&Math.abs(a.y-b.y)<.02,JSON.stringify({before:a,after:b}));}
 async function start(p){await p.goto(base);await p.locator('#start:enabled').focus();await p.keyboard.press('Enter');await p.clock.runFor(70);return findContext(p);}
-(async()=>{fs.mkdirSync('test-results',{recursive:true});const browser=await chromium.launch({args:['--enable-unsafe-swiftshader']});try{
- for(const viewport of[{width:1280,height:1000},{width:390,height:844},{width:844,height:390}]){
+(async()=>{fs.mkdirSync('test-results',{recursive:true});const browser=await chromium.launch(process.env.CHROMIUM_PLAYWRIGHT_MODULE?{args:['--enable-unsafe-swiftshader']}:{channel:'chrome',headless:true,args:['--enable-unsafe-swiftshader']});try{
+ for(const viewport of[{width:1280,height:1000},{width:390,height:844},{width:844,height:390}].filter(v=>!process.env.SDL_ONLY_LANDSCAPE||v.width===844)){
   const mobile=viewport.width<1000,context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile});
   const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.install();
   let a=await start(p),before=await ship(p,a);
@@ -25,6 +25,7 @@ async function start(p){await p.goto(base);await p.locator('#start:enabled').foc
    await p.keyboard.up('ArrowRight');await p.keyboard.down('ArrowRight');await p.clock.runFor(100);await p.keyboard.up('ArrowRight');
    assert((await ship(p,a)).x>before.x+.08,'fresh key press works after cleanup');
   }
+  a=await start(p);await p.keyboard.down('ArrowDown');await p.clock.runFor(100);await p.keyboard.up('ArrowDown');await p.clock.runFor(40);assert((await ship(p,a)).y<-.08,'keyboard down moves the real ship');
   a=await start(p);await p.keyboard.press('Space');await p.clock.runFor(50);
   await p.waitForFunction(()=>Module.SDL2.audioContext.state==='running'&&Module.SDL2.audio.currentOutputBuffer?.getChannelData(0).some(v=>Math.abs(v)>.0001));
   await p.locator('#reset').focus();await p.keyboard.press('Enter');await p.locator('#play:not([hidden])').waitFor();await p.clock.runFor(50);
@@ -56,7 +57,7 @@ async function start(p){await p.goto(base);await p.locator('#start:enabled').foc
    await game.locator('#resume').focus();await p.keyboard.press('Enter');await p.clock.runFor(50);still(frozen.objects[1],await ship(native,a));
    await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
    await p.keyboard.down('KeyD');await p.clock.runFor(100);await p.keyboard.up('KeyD');assert((await ship(native,a)).x>frozen.objects[1].x+.08);
-   if(viewport.width===844){const r=await game.locator('#board').boundingBox();assert(r.y>=48&&r.y+r.height<=390,'returning from the site menu keeps the whole board visible');}
+   if(viewport.width===844){const r=await game.locator('#board').boundingBox();assert(r.y>=48&&r.y+r.height<=390,'returning from the site menu keeps the whole board visible '+JSON.stringify(r));}
    await p.screenshot({path:`test-results/sdl-space-frame-${viewport.width}.png`});
    if(viewport.width===844)await p.setViewportSize({width:390,height:844});
    await game.getByRole('link',{name:'← Retro games',exact:true}).tap();await p.waitForFunction(()=>location.hash==='#games/retro'&&!document.querySelector('iframe'));

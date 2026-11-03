@@ -19,18 +19,22 @@ The unchanged older Emscripten runtime receives preloaded original bytes through
 
 The blocking native Game over alert becomes an HTML overlay. The score still comes from the engine’s actual collision message. Play again resumes the world already reset by the engine; New round reloads the entire engine.
 
-The native window is 80% of the starting screen width. Mouse, finger and arrow/WASD coordinates are translated to that original resolution, even after rotation. SDL’s additional touch emulation is blocked to avoid conflicting positions. Keyboard movement uses ordinary SDL mouse events; no controller writes game memory. Space plays the same native sample using a mouse-down/up pair. Tab and Space/Enter on HTML controls retain normal browser focus and activation.
+The native window is 80% of the starting screen width. Mouse, finger and arrow/WASD coordinates are translated to that original resolution. The wrapper inverts SDL’s CSS-to-backbuffer scale using the current canvas rectangle and pixel dimensions, so fullscreen rotation retains the same native coordinates. SDL’s additional touch emulation is blocked to avoid conflicting positions. Keyboard movement uses ordinary SDL mouse events; no controller writes game memory. Space plays the same native sample using a mouse-down/up pair. Tab and Space/Enter on HTML controls retain normal browser focus and activation.
 
-The first finger owns a drag. Extra contacts cannot move the ship or release the owner. End, cancellation, focus loss and pause release input. Pausing freezes the native loop and audio; Resume restarts both. Stale hardware repeats after pause or focus loss are ignored until a fresh press. Release also sends native mouse-up for an active touch.
+The first finger owns a drag. Extra contacts cannot move the ship or release the owner; they can use the overlaid pause, restart and fullscreen actions. End, cancellation, focus loss and pause release input. Pausing freezes the native loop and audio; Resume restarts both. Stale hardware repeats after pause or focus loss are ignored until a fresh press. Release also sends native mouse-up for an active touch.
 
-Portrait and compact landscape preserve the board’s aspect ratio. Canvas pixel-size changes update the WebGL viewport without changing the native world. The original engine may print an initial `emscripten_set_main_loop_timing` message: its SDL swap interval is set before the main loop is registered. The engine bytes remain unchanged.
+Portrait and compact landscape preserve the board’s aspect ratio. Canvas pixel-size changes update the WebGL viewport without changing the native world. All controls sit inside the rendered game, without buttons below it. Native fullscreen preserves the scene proportions, supports touch and keyboard, and also works inside the homepage iframe. Browsers without the API get an expanded game view with an exit control and Escape. The shared `assets/game-view.mjs` helper handles secondary-finger actions and invokes input cleanup only once per fullscreen transition. Returning from the site menu fits the frame immediately, keeping touch targets still.
+
+The original engine may print an initial `emscripten_set_main_loop_timing` message: its SDL swap interval is set before the main loop is registered. The engine bytes remain unchanged.
 
 ## Verification
 
 `node --test scripts/test-sdl-space.mjs` checks the unchanged native engine, BSD license and all five packaged segments.
 
-`npm run test:sdl-space:browser` performs real mouse, keyboard and touch gameplay: at least 300 surviving frames, all eight rock slots and variable sizes, actual collision/score/replay, pause, reset, decoded native sound, portrait/landscape mapping and recovery from separate JavaScript/WASM/data failures.
+`npm run test:sdl-space:browser` performs real mouse, keyboard and touch gameplay: at least 300 surviving frames, all eight rock slots and variable sizes, actual collision/score/replay, pause, reset, decoded native sound, portrait/landscape mapping and recovery from separate native JavaScript/WASM/data and app/shared-host failures.
 
 `npm run test:sdl-space:input` adds desktop and mobile-context keyboard-only movement, diagonal keys and aliases, independent release, stale-repeat cleanup, keyboard-triggered native audio, keyboard restart, two-finger drag ownership, cancellation and a real frame-window focus change. It checks the complete embedded board in phone landscape and return navigation.
 
 The observer reads the unique wasm32 Context layout from the public C source. It reads native positions, frame counts and rocks to choose real input events. It never teleports the ship, changes memory, injects points or calls loss logic. Browser contexts emulate touch-capable phones; physical devices and Safari need separate verification.
+
+`npm run test:sdl-space:fullscreen` verifies native keyboard/touch play and actual sound inside fullscreen, second-finger pause/resume/reset/fullscreen, all drag directions, device rotation, old-contact cleanup after a restarted engine, full WebGL viewport, in-scene controls, iframe fullscreen and the missing-API Escape fallback.
