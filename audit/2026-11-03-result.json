@@ -1,0 +1,16 @@
+{
+  "game": "sdl-space",
+  "date": "2026-11-03",
+  "baselineCommit": "ceef3ab7d1719c49789a917ce539f56bc9d2ca47",
+  "result": "local-passed-awaiting-live",
+  "scope": "Actual Chromium desktop and mobile browser contexts, with touch enabled and keyboard events in both. Physical phones/tablets and Safari are not covered by this result.",
+  "checks": "Passed full native browser survival/collision/score/replay/audio/four-file-recovery checks plus desktop and touch-enabled portrait/landscape keyboard-only input, diagonal/alias independent release, pause/focus stale-repeat cleanup, actual Space-triggered native audio, keyboard and held-touch restart, two-finger drag ownership and cancel, real embedded frame-window focus/pause/resume and complete landscape scene. Earlier reading/quiz/driving frame regressions passed.",
+  "findings": "Fixed stale held-key repeats resuming movement after pause/focus. Added keyboard Space for original native click sound, native mouse-up on touch cleanup, and English interface/source notes. Found and fixed homepage scroll clipping after returning from the menu. All original native JS/WASM/data/license and bundled assets unchanged.",
+  "testScripts": [
+    "scripts/test-sdl-space-browser.cjs",
+    "scripts/test-sdl-space-input.cjs",
+    "scripts/sdl-space-observer.cjs",
+    "scripts/test-sdl-space.mjs"
+  ],
+  "publicUrl": "https://joynes.github.io/joynes.se/games/sdl-space/"
+}

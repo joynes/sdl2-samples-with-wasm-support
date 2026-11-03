@@ -1,0 +1,12 @@
+{
+  "name": "sdl-space-web-release",
+  "private": true,
+  "scripts": {
+    "test:1": "node scripts/test-sdl-space-browser.cjs",
+    "test:2": "node scripts/test-sdl-space-input.cjs",
+    "test:3": "node scripts/sdl-space-observer.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}

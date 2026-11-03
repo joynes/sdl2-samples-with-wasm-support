@@ -1,36 +1,36 @@
-# SDL Space — hinderbana
+# SDL Space — Survival
 
-AI-remake av retrospel. Det här är Johannes överlevnadsspel från juli 2020 med ett nytt webbgränssnitt. **Originalets JavaScript-runtime, WebAssembly och datapaket är oförändrade.** Ny motor eller nya spelregler ersätter inte originalet.
+AI remake of a retro game from July 2020. The original JavaScript engine, WebAssembly and data package are unchanged. This host adds a browser interface and input translation.
 
-## Källa
+## Source and rules
 
-Offentligt repo [sdl2-samples-with-wasm-support](https://github.com/joynes/sdl2-samples-with-wasm-support/tree/184adda998c5b91e07c0f7cfebe464d87cd4b09a), commit `184adda998c5b91e07c0f7cfebe464d87cd4b09a`, 24 juli 2020. Spelkoden är [`simple_game_using_sdl2_wasm.c`](https://github.com/joynes/sdl2-samples-with-wasm-support/blob/184adda998c5b91e07c0f7cfebe464d87cd4b09a/simple_game_using_sdl2_wasm.c). Repots andra två program är grafikdemonstrationer och utgör inte ytterligare spel.
+Public repository [sdl2-samples-with-wasm-support](https://github.com/joynes/sdl2-samples-with-wasm-support/tree/184adda998c5b91e07c0f7cfebe464d87cd4b09a), commit `184adda998c5b91e07c0f7cfebe464d87cd4b09a`, 24 July 2020. The game is [`simple_game_using_sdl2_wasm.c`](https://github.com/joynes/sdl2-samples-with-wasm-support/blob/184adda998c5b91e07c0f7cfebe464d87cd4b09a/simple_game_using_sdl2_wasm.c); the other two programs are graphics demonstrations. The [BSD 2-Clause license](LICENSE) is preserved. [provenance.json](provenance.json) records exact engine, source, license and individual data-segment hashes.
 
-BSD 2-Clause-licensen ligger i [LICENSE](LICENSE). Exakta hashvärden för de tre ursprungliga runtimefilerna, källan, licensen och varje del av datapaketet finns i [provenance.json](provenance.json).
+- The native game uses mouse position in normalized coordinates. Mouse-down plays `sample.wav` through SDL_mixer.
+- Ten object slots contain the star background, ship and eight reusable rocks. Rocks spawn on the right and move left, with a little vertical drift.
+- Rock height varies from 0.1 to 0.3; width is height divided by 1920/1080. Horizontal speed is 0.02–0.04 scene units/frame; vertical speed is −0.01–0.01.
+- Rectangular collision uses 0.6 of the ship’s half-width, 0.5 of its half-height and 0.5 of the rock half-dimensions. Collision resets the native world and random seed to 1.
+- The original Game over message reports surviving frames. There are no chapters, win conditions, saved levels or shooting. The click sound is an effect.
+- All five packaged assets are retained, including the unused `simple.frag` shader, ship/rock/background shaders and sample audio.
 
-## Originalets spel
+## Browser interface
 
-- Ett skepp styrs med muspositionen i normaliserade koordinater. Musknapp ned spelar `sample.wav` via SDL_mixer.
-- Tio objektplatser: stjärnbakgrund, ett skepp och åtta återanvändbara stenplatser. Stenarna skapas till höger och flyttar åt vänster, med varierande storlek och en liten vertikal hastighet.
-- Stenhöjd 0.1–0.3, bredd höjd/(1920/1080), horisontell fart 0.02–0.04 scenenheter per bildruta, vertikal fart -0.01–0.01.
-- Rektangulär kollision använder 0.6 av skeppets halvbredd, 0.5 av dess halvhöjd och 0.5 av stenarnas halvmått enligt källan. Kollisionen återställer den inbyggda spelvärlden och slumptalsfröet till 1.
-- Poängen i den ursprungliga Game over-rutan är antalet bildrutor som överlevts. Det finns inga kapitel, vinstmål, sparade banor eller skjutmekanik. Klickljudet är en effekt, inte ett skott.
-- Shaderfilerna ritar skepp, stenar och animerade stjärnor. Samtliga fem paketerade filer, även den oanvända `simple.frag`, behålls byte för byte i datapaketet.
+The unchanged older Emscripten runtime receives preloaded original bytes through its existing `wasmBinary` and `getPreloadedPackage` inputs. Network failures offer Retry, which reloads the page. The engine requires the canvas id `canvas` even when `Module.canvas` is supplied.
 
-## Webbgränssnitt och inmatning
+The blocking native Game over alert becomes an HTML overlay. The score still comes from the engine’s actual collision message. Play again resumes the world already reset by the engine; New round reloads the entire engine.
 
-Filerna förladdas innan den oförändrade äldre Emscripten-runtimen startas. Den får sina vanliga `wasmBinary`- och `getPreloadedPackage`-inmatningar från samma originalbytes. Nätfel ger en återhämtningsknapp, som laddar om sidan. Motorn behöver canvas-id `canvas`; den gamla SDL-runtimen söker det namnet även när Module.canvas är satt.
+The native window is 80% of the starting screen width. Mouse, finger and arrow/WASD coordinates are translated to that original resolution, even after rotation. SDL’s additional touch emulation is blocked to avoid conflicting positions. Keyboard movement uses ordinary SDL mouse events; no controller writes game memory. Space plays the same native sample using a mouse-down/up pair. Tab and Space/Enter on HTML controls retain normal browser focus and activation.
 
-Meny, instruktioner, paus, ny runda, tangentbord och touch tillkommer. Webbläsarens blockerande Game over-alert ersätts med en HTML-ruta. Resultatet kommer från originalmotorns meddelande efter verklig kollision. Motorn har redan återställt världen då; ”Spela igen” fortsätter den återställda inbyggda loopen. ”Ny runda” laddar om hela motorn.
+The first finger owns a drag. Extra contacts cannot move the ship or release the owner. End, cancellation, focus loss and pause release input. Pausing freezes the native loop and audio; Resume restarts both. Stale hardware repeats after pause or focus loss are ignored until a fresh press. Release also sends native mouse-up for an active touch.
 
-Originalet räknar muskoordinater mot ett fönster som är 80 procent av skärmbredden. Den skalade webbspelrutan kan ha en annan storlek. Webbgränssnittet översätter därför mus, piltangenter/WASD och fingerdrag till det ursprungliga fönstrets koordinater. SDL:s parallella touchöversättning stoppas så att samma finger inte ger två olika muspositioner. Tangentbordets virtuella pekare går genom samma vanliga SDL-mushändelser. Tab och aktivering av HTML-knappar med mellanslag/Enter undantas från SDL:s globala tangentfångst så att fokus kan lämna spelrutan. Ingen webbkontroll skriver till spelets minne.
+Portrait and compact landscape preserve the board’s aspect ratio. Canvas pixel-size changes update the WebGL viewport without changing the native world. The original engine may print an initial `emscripten_set_main_loop_timing` message: its SDL swap interval is set before the main loop is registered. The engine bytes remain unchanged.
 
-Paus använder den befintliga native-loopens pause/resume-funktioner, släpper kontroller och pausar ljudkontexten. Återgång med knappen återupptar även ljudkontexten. Stående och kompakt liggande mobilvy behåller spelrutans bildförhållande. Originalets startupplösning sparas för inmatningen även efter rotation; den ändras inte när skärmbredden senare ändras. När SDL ändrar canvasens pixelstorlek uppdateras WebGL-viewporten till samma storlek, så att hela scenen fortsätter fylla spelrutan. Det ändrar renderingens yta, inte spelvärlden.
+## Verification
 
-Originalmotorn kan skriva en initial konsolrad om `emscripten_set_main_loop_timing` innan huvudloopen har registrerats: SDL:s swap interval sätts före loopstart i originalkällan. Det hindrar inte den efterföljande körningen. Runtimen ändras inte för att tysta raden.
+`node --test scripts/test-sdl-space.mjs` checks the unchanged native engine, BSD license and all five packaged segments.
 
-## Testning
+`npm run test:sdl-space:browser` performs real mouse, keyboard and touch gameplay: at least 300 surviving frames, all eight rock slots and variable sizes, actual collision/score/replay, pause, reset, decoded native sound, portrait/landscape mapping and recovery from separate JavaScript/WASM/data failures.
 
-`node --test scripts/test-sdl-space.mjs` kontrollerar originalfilernas identitet, licensen och alla fem segment i datapaketet.
+`npm run test:sdl-space:input` adds desktop and mobile-context keyboard-only movement, diagonal keys and aliases, independent release, stale-repeat cleanup, keyboard-triggered native audio, keyboard restart, two-finger drag ownership, cancellation and a real frame-window focus change. It checks the complete embedded board in phone landscape and return navigation.
 
-`npm run test:sdl-space:browser` spelar med vanliga mus-, tangentbords- och touchhändelser och observerar originalmotorn utan att skriva till den. En läsande testobservatör identifierar Context-layouten från den öppna C-koden och läser positioner, åtta stenplatser och bildrutepoäng. Det används för att styra verkliga musrörelser och för att kontrollera att paus verkligen stannar motorn. Kollisioner uppnås genom att flytta skeppet in i en befintlig sten, inte genom att ändra spelminne eller anropa förlustlogik från testet.
+The observer reads the unique wasm32 Context layout from the public C source. It reads native positions, frame counts and rocks to choose real input events. It never teleports the ship, changes memory, injects points or calls loss logic. Browser contexts emulate touch-capable phones; physical devices and Safari need separate verification.
